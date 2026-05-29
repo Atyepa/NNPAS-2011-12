@@ -58,7 +58,7 @@ Per-tier donor lookups are precomputed via `split()` into hash-keyed indices, an
 
 ### Usage
 
-1. Edit `bp_path` if your `npa11bp.csv` is not at `C:/Users/atyeo/OneDrive/R data/NNPAS_2011_12/CURF/`.
+1. Edit `bp_path` to the path where your copy of `npa11bp.csv` is located. 
 2. Keep a backup of `npa11bp.csv` — the script overwrites in place.
 3. Run:
    ```r
