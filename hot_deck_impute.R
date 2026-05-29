@@ -36,7 +36,7 @@ suppressPackageStartupMessages({
 library(dplyr)
 set.seed(20260529)
 
-bp_path <- "C:/Users/atyeo/OneDrive/R data/NNPAS_2011_12/CURF/npa11bp.csv"
+bp_path <- "Your path/npa11bp.csv"
 
 dat <- fread(bp_path, na.strings = c(""))
 orig_cols <- copy(names(dat))
