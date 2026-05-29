@@ -1,6 +1,6 @@
 # Hot-deck imputation of measured weight (PHDKGWBC) and measured height (PHDCMHBC)
 # in NNPAS 2011-12 CURF file npa11bp.csv. Adapted from the ABS NHS 2022
-# physical-measures imputation method (see Hot deck imputation.docx).
+# physical-measures imputation method (see README.md).
 #
 # What is imputed:
 #   PHDKGWBC and PHDCMHBC wherever they take a missing code (997, 998, 999),
@@ -14,7 +14,7 @@
 # available. Final fallback is SEX-only.
 #
 # Notes vs the ABS NHS 2022 method as written in the source brief:
-#   - High cholesterol is excluded as a matching variable (user direction).
+#   - High cholesterol is excluded as a matching variable (not available).
 #   - "Part of state" is implemented via ARIABC recoded to 1 = Major cities,
 #     2 = Inner regional + Other (user direction).
 #   - "Self-reported BMI category" matching var is not available on this CURF
