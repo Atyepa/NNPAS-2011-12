@@ -1,0 +1,23 @@
+# NNPAS CURF data — never commit
+*.csv
+*.xlsx
+*.xls
+*.sas7bdat
+*.sav
+*.dta
+*.rds
+*.RData
+
+# R
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
