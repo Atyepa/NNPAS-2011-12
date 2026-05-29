@@ -7,9 +7,9 @@
 #   except for self-reported-pregnant women (SABDYMS == 4) who are left as-is.
 #
 # Matching variables (donor must equal recipient on all):
-#   Adults 18+:    5-year AGE band, SEX, AREA2 (= recoded ARIABC), SABDYMS, EXLEVELN
-#   Ages 15-17:    AGE (single year), SEX, AREA2, SABDYMS, EXLEVELN
-#   Ages 2-14:     AGE (single year), SEX, AREA2
+#   Adults 18+:    5-year AGEC band, SEX, AREA2 (= recoded ARIABC), SABDYMS, EXLEVELN
+#   Ages 15-17:    AGEC (single year), SEX, AREA2, SABDYMS, EXLEVELN
+#   Ages 2-14:     AGEC (single year), SEX, AREA2
 # Fallback: drop matching vars one at a time (right-to-left) until a donor is
 # available. Final fallback is SEX-only.
 #
@@ -45,27 +45,27 @@ n <- nrow(dat)
 names<- names(dat) %>% as_tibble()
 
 stopifnot(all(c("PHDKGWBC", "PHDCMHBC", "BMISC", "BMICATHY", "BMIMCATW",
-                "AGE", "SEX", "ARIABC", "SABDYMS", "EXLEVELN") %in% names(dat)))
+                "AGEC", "SEX", "ARIABC", "SABDYMS", "EXLEVELN") %in% names(dat)))
 
 missing_codes <- c(997, 998, 999)
 
 # Recoded geography: 1 = Major cities, 2 = All other regions (Inner regional + Other)
 dat[, AREA2 := fifelse(ARIABC == 1L, 1L, 2L)]
 
-# 5-year adult age bands (capped at 75+)
+# 5-year adult AGEC bands (capped at 75+)
 dat[, AGEGRP5 := fcase(
-  AGE >= 18 & AGE <= 24, 18L,
-  AGE >= 25 & AGE <= 29, 25L,
-  AGE >= 30 & AGE <= 34, 30L,
-  AGE >= 35 & AGE <= 39, 35L,
-  AGE >= 40 & AGE <= 44, 40L,
-  AGE >= 45 & AGE <= 49, 45L,
-  AGE >= 50 & AGE <= 54, 50L,
-  AGE >= 55 & AGE <= 59, 55L,
-  AGE >= 60 & AGE <= 64, 60L,
-  AGE >= 65 & AGE <= 69, 65L,
-  AGE >= 70 & AGE <= 74, 70L,
-  AGE >= 75,             75L,
+  AGEC >= 18 & AGEC <= 24, 18L,
+  AGEC >= 25 & AGEC <= 29, 25L,
+  AGEC >= 30 & AGEC <= 34, 30L,
+  AGEC >= 35 & AGEC <= 39, 35L,
+  AGEC >= 40 & AGEC <= 44, 40L,
+  AGEC >= 45 & AGEC <= 49, 45L,
+  AGEC >= 50 & AGEC <= 54, 50L,
+  AGEC >= 55 & AGEC <= 59, 55L,
+  AGEC >= 60 & AGEC <= 64, 60L,
+  AGEC >= 65 & AGEC <= 69, 65L,
+  AGEC >= 70 & AGEC <= 74, 70L,
+  AGEC >= 75,             75L,
   default = NA_integer_
 )]
 
@@ -76,15 +76,15 @@ dat[, is_donor := !w_miss & !h_miss & !pregnant]
 dat[, is_recip := (w_miss | h_miss) & !pregnant]
 
 donors <- dat[is_donor == TRUE,
-              .(donor_row = .I, AGE, SEX, AREA2, SABDYMS, EXLEVELN, AGEGRP5,
+              .(donor_row = .I, AGEC, SEX, AREA2, SABDYMS, EXLEVELN, AGEGRP5,
                 PHDKGWBC, PHDCMHBC, BMISC, BMICATHY, BMIMCATW)]
 donors[, donor_row := .I]
 
 # Auxiliary coarsened keys for fallback
-dat[, AGEGRP5_TEEN := fcase(AGE %in% 15:17, 15L, default = NA_integer_)]
-dat[, AGEGRP3_CHILD := AGE %/% 3L * 3L]
-donors[, AGEGRP5_TEEN := fcase(AGE %in% 15:17, 15L, default = NA_integer_)]
-donors[, AGEGRP3_CHILD := AGE %/% 3L * 3L]
+dat[, AGEGRP5_TEEN := fcase(AGEC %in% 15:17, 15L, default = NA_integer_)]
+dat[, AGEGRP3_CHILD := AGEC %/% 3L * 3L]
+donors[, AGEGRP5_TEEN := fcase(AGEC %in% 15:17, 15L, default = NA_integer_)]
+donors[, AGEGRP3_CHILD := AGEC %/% 3L * 3L]
 
 # Tier lists (highest-to-lowest specificity) by life stage
 adult_tiers <- list(
@@ -96,25 +96,25 @@ adult_tiers <- list(
   c("SEX")
 )
 teen_tiers <- list(
-  c("AGE", "SEX", "AREA2", "SABDYMS", "EXLEVELN"),
-  c("AGE", "SEX", "AREA2", "EXLEVELN"),
-  c("AGE", "SEX", "AREA2", "SABDYMS"),
-  c("AGE", "SEX", "AREA2"),
-  c("AGE", "SEX"),
+  c("AGEC", "SEX", "AREA2", "SABDYMS", "EXLEVELN"),
+  c("AGEC", "SEX", "AREA2", "EXLEVELN"),
+  c("AGEC", "SEX", "AREA2", "SABDYMS"),
+  c("AGEC", "SEX", "AREA2"),
+  c("AGEC", "SEX"),
   c("AGEGRP5_TEEN", "SEX"),
   c("SEX")
 )
 child_tiers <- list(
-  c("AGE", "SEX", "AREA2"),
-  c("AGE", "SEX"),
+  c("AGEC", "SEX", "AREA2"),
+  c("AGEC", "SEX"),
   c("AGEGRP3_CHILD", "SEX"),
   c("SEX")
 )
 
-pick_tier_list <- function(age) {
-  if (is.na(age))         return(adult_tiers)
-  if (age >= 18)          return(adult_tiers)
-  if (age >= 15)          return(teen_tiers)
+pick_tier_list <- function(AGEC) {
+  if (is.na(AGEC))         return(adult_tiers)
+  if (AGEC >= 18)          return(adult_tiers)
+  if (AGEC >= 15)          return(teen_tiers)
   return(child_tiers)
 }
 
@@ -150,7 +150,7 @@ for (k in seq_along(all_tiers)) {
 
 for (ri in seq_along(recip_idx)) {
   i <- recip_idx[ri]
-  tiers <- pick_tier_list(dat$AGE[i])
+  tiers <- pick_tier_list(dat$AGEC[i])
   matched <- FALSE
   for (t in seq_along(tiers)) {
     vars <- tiers[[t]]
